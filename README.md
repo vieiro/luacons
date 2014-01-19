@@ -1,9 +1,7 @@
-luacons
-=======
+* cons-cells in Lua using tables
 
-Different experiments to build cons-cells in Lua.
+This module implements cons-cells using Lua tables.
 
-* [cons-cells in C](in_c) this is an implementation in C. This is kept for historical reasons, but it does not handle cycles properly. Do not use it.
-* [cons-cells as Lua tables](tables) this is an implementation in Lua.
+See [test.lua](/blob/master/test.lua) for examples on how to use it.
 
-
+The [in_c](in_c) directory keeps an old C version that does not handle cycles properly, but it's still kept there for historical reasons.
