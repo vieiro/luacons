@@ -111,6 +111,7 @@ end
 M.car    = function (c) return c[1] end
 M.cdr    = function (c) return c[2] end
 M.cadr   = function (c) return c[2][1] end
+M.cdar   = function (c) return c[1][2] end
 M.cddr   = function (c) return c[2][2] end
 M.caddr  = function (c) return c[2][2][1] end
 M.cdddr  = function (c) return c[2][2][2] end
@@ -190,6 +191,7 @@ local cell_methods = {
       cdr       = M.cdr,
       cadr      = M.cadr,
       cddr      = M.cddr,
+      cdar      = M.cdar,
       caddr     = M.caddr,
       cdddr     = M.cdddr,
       cadddr    = M.cadddr,
@@ -210,7 +212,6 @@ local cell_metatable = {
   __index    = cell_methods,
 }
 
-
 -- Creates a new cell with (car, cdr)
 M.cons = function (car, cdr)
   if car == nil and cdr == nil then return nil end
@@ -220,6 +221,17 @@ M.cons = function (car, cdr)
     [3] = 'cell'
   }
   return setmetatable(cons_cell, cell_metatable);
+end
+
+local function create_list (t,i)
+  debug.traceback()
+  return t[i] and M.cons(t[i], create_list(t, i+1)) or nil
+end
+
+-- Creates a list with a variable number of arguments
+M.list = function (...)
+  local args = {...}
+  return args[1] and create_list(args, 1) or nil
 end
 
 return M
