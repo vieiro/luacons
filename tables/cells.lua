@@ -224,7 +224,6 @@ M.cons = function (car, cdr)
 end
 
 local function create_list (t,i)
-  debug.traceback()
   return t[i] and M.cons(t[i], create_list(t, i+1)) or nil
 end
 
