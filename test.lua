@@ -5,6 +5,10 @@
 -- MIT License
 --
 
+----------------------------------------------------------------------
+-- CELLS unit tests
+----------------------------------------------------------------------
+
 local cells = require 'cells'
 
 local append  = cells.append
@@ -21,9 +25,6 @@ local list    = cells.list
 local a = cons('A')
 local b = cons(cons('A'), cons('B'))
 local c = cons('A', cons('B'))
-
-local unit_test_count = 0
-
 
 -- tostring checks
 
@@ -57,11 +58,37 @@ assert(cells.tostring(a) == '()')
 local a = list('A', 'B', 'C')
 assert(cells.tostring(a) == '(A B C)')
 
--- A list with functions
+-- A list of cons-cells with functions
 local f = function (x) return x end
 local a = list(f, f, f)
 assert(a:car() == f)
 assert(a:cadr() == f)
 assert(a:caddr() == f)
 
-print('All tests passed')
+print('cells: All tests passed')
+
+----------------------------------------------------------------------
+-- READER Unit tests
+----------------------------------------------------------------------
+
+local reader = require 'reader'
+
+-- Read some s-expressions
+assert(cells.tostring(reader.read('(A B)')) == '(A B)')
+assert(cells.tostring(reader.read('(A . B)')) == '(A . B)')
+assert(cells.tostring(reader.read('(123.456 . B)')) == '(123.456 . B)')
+assert(cells.tostring(reader.read('(A (B . C))')) == '(A (B . C))')
+
+-- s-expressions with quotes
+assert(cells.tostring(reader.read("(A ' (B  C ) )")) == '(A (quote (B C)))')
+assert(cells.tostring(reader.read(" ' 42")) == "42")
+assert(cells.tostring(reader.read(" ' ()")) == "()")
+
+-- s-expressions with errors
+local c, e = reader.read('( A')
+assert(e == 'Unexpected end of file')
+local c, e = reader.read('(A . B C)')
+assert(e == '1:8:Malformed dotted pair')
+
+print('reader: All tests passed')
+

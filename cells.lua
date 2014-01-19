@@ -65,7 +65,7 @@ local function collect_tostring (c, visited, labels)
         s = s .. ')'
         break
       elseif M.is_atom(c) then
-        s = s .. '.' .. tostring(c) .. ')'
+        s = s .. ' . ' .. tostring(c) .. ')'
         break
       else
         s = s .. ' '
