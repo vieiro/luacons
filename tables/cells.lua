@@ -26,8 +26,64 @@ M.is_atom = function (c)
   return not M.is_nil(c) and not M.is_cons(c)
 end
 
--- Quick & dirty print function, without cycles
+-- Checks for cycles and assigns numbers to them for later printing
+local function compute_labels_for_cycles (c, visited, labels, next_label)
+  if M.is_cons(c) then
+    if visited[c] then
+      if not labels[c] then
+        labels[c] = next_label
+        next_label = next_label + 1
+      end
+    else
+      visited[c] = true
+      next_label = compute_labels_for_cycles(c[1], visited, labels, next_label)
+      next_label = compute_labels_for_cycles(c[2], visited, labels, next_label)
+    end
+  end
+  return next_label
+end
+
+local function collect_tostring (c, visited, labels)
+  if M.is_nil(c) then
+    return '()'
+  elseif M.is_atom(c) then
+    return tostring(c)
+  else
+    -- An already visited cell
+    if visited[c] then return '#' .. labels[c] .. '#' end
+    -- Visit the cell and continue
+    visited[c] = true
+    -- A visited cell that has a label
+    local s = labels[c] and '#' .. labels[c] .. '=(' or '('
+    while true do
+      s = s .. collect_tostring(c[1], visited, labels)
+      c = c[2]
+      if visited[c] then 
+        s = s .. ' #' .. labels[c] .. '#)'
+        break
+      elseif M.is_nil(c) then
+        s = s .. ')'
+        break
+      elseif M.is_atom(c) then
+        s = s .. '.' .. tostring(c) .. ')'
+        break
+      else
+        s = s .. ' '
+      end
+    end
+    return s
+  end
+end
+
 M.tostring = function (c)
+  local visited = {}
+  local labels  = {}
+  local next_label = compute_labels_for_cycles(c, visited, labels, 1)
+  return collect_tostring(c, {}, labels)
+end
+
+-- Quick & dirty print function, without cycles
+M.tostring_old = function (c)
   if M.is_nil(c) then
     return '()'
   elseif M.is_atom(c) then
@@ -145,6 +201,8 @@ local cell_methods = {
 
       set_car   = M.set_car,
       set_cdr   = M.set_cdr,
+
+      tostring  = M.tostring,
 }
 
 local cell_metatable = {

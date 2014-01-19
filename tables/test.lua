@@ -7,48 +7,42 @@
 
 local cells = require 'cells'
 
-local cons    = cells.cons
+local append  = cells.append
 local car     = cells.car
 local cdr     = cells.cdr
-local append  = cells.append
-local last    = cells.last
-local length  = cells.length
+local cons    = cells.cons
 local is_atom = cells.is_atom
 local is_cons = cells.is_cons
 local is_nil  = cells.is_nil
+local last    = cells.last
+local length  = cells.length
 
-local a = cons("A")
-local b = cons(cons("A"), cons("B"))
-local c = cons("A", cons("B"))
+local a = cons('A')
+local b = cons(cons('A'), cons('B'))
+local c = cons('A', cons('B'))
 
-local v = {a,b,c}
+local unit_test_count = 0
 
-for _, a in ipairs(v) do
-  print("SEXPR      : ", a)
-  print("is_cons    : ", a:is_cons())
-  print("is_nil     : ", a:is_nil())
-  print("is_atom    : ", a:is_atom())
 
-  print("car        : ", car(a))
-  print(":car       : ", a:car())
-  print("car is_atom: ", is_atom(car(a)))
+-- tostring checks
 
-  print("cdr        : ", cdr(a))
-  print(":cdr       : ", a:cdr())
-  print("cdr is_atom: ", is_atom(cdr(a)))
+assert(a:tostring() == '(A)')
+assert(b:tostring() == '((A) B)')
+assert(c:tostring() == '(A B)')
+assert(cons() == nil)
 
-  print("last       : ", a:last())
-  print("length     : ", a:length())
-  print(":nth(1)    : ", a:nth(1))
-  print()
-end
+-- cyclic cells
 
-print("B            = ", b)
-print("C            = ", c)
-print("(append B C) = ", append(b, c))
+local a = cons('A', cons('B', cons ('C', nil)))
+assert(a:tostring() == '(A B C)')
+
 a:set_car(a)
+assert(a:tostring() == '#1=(#1# B C)')
 
-a = nil
-b = nil
-c = nil
+a:set_cdr(a)
+assert(a:tostring() == '#1=(#1# #1#)')
+
+print('All tests passed')
+
+
 
