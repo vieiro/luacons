@@ -112,12 +112,12 @@ local test_reader = function (input_text, expected_text)
   end
   assert(errors == nil)
   assert(#cells > 0)
-  assert(s == expected_text)
+  assert(s == expected_text, 'Got "' .. s .. '" expected "' .. expected_text .. '"')
 
 end
 
 test_reader('(A   B )', '(A B)')
-test_reader('42 43', '42:43')
+test_reader("42 '43", '42:(quote 43)')
 test_reader('(A B) (C D)', '(A B):(C D)')
 test_reader("  ( A . B )  ' ( C  D ) ", '(A . B):(quote (C D))')
 

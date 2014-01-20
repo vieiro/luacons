@@ -29,6 +29,9 @@ P.read = function (parser)
   elseif token.txt == "'" then
     -- P.read_next_token(parser)
     local e, err = P.read(parser)
+    token.txt = 'quote'
+    return cells.cons(token, cells.cons(e, nil))
+    --[[
     if cells.is_nil(e) then 
       return nil
     elseif cells.is_atom(e) then
@@ -37,6 +40,7 @@ P.read = function (parser)
       token.txt = 'quote'
       return cells.cons(token, cells.cons(e, nil))
     end
+    ]]
   elseif token.txt == '(' then
     return P.read_list(parser)
   else
