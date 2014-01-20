@@ -65,7 +65,36 @@ assert(a:car() == f)
 assert(a:cadr() == f)
 assert(a:caddr() == f)
 
-print('cells: All tests passed')
+print('cells','All tests passed.')
+
+----------------------------------------------------------------------
+-- LEXER Unit tests
+----------------------------------------------------------------------
+
+local lexer = require 'lexer'
+
+local count_tokens = function(text, expected_token_count, verbose)
+  local l = lexer.new(text)
+  local token_count = 0
+  if verbose then
+    print('Tokenizing: ', text)
+    print('Token', 'Line', 'Column')
+  end
+  while true do
+    local token = l:next_token()
+    if token == nil then assert(token_count == expected_token_count) return end
+    token_count = token_count + 1
+    if verbose then print(token, token.line, token.column) end
+  end
+end
+
+count_tokens('(a b)', 4)
+count_tokens('(a ;A comment\n b)', 4)
+count_tokens('(123.456 . .45)', 5)
+count_tokens(' ( a ( b ) . .45 0.45 )', 9)
+count_tokens(' ( a ( b ) . -.45 -0.45 )', 9)
+
+print('lexer','All tests passed.')
 
 ----------------------------------------------------------------------
 -- READER Unit tests
@@ -101,5 +130,5 @@ local r = reader.new('(A . B C)')
 local c,e = r:read()
 assert(c == nil and e == '1:8:Malformed dotted pair')
 
-print('reader: All tests passed')
+print('reader','All tests passed.')
 

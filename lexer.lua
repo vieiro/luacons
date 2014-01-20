@@ -21,13 +21,38 @@ local update_linecount = function(lexer, start_index, end_index)
 end
 
 -- skips whitespace
-local skip_whitespace = function (lexer)
-  -- Find whitespace
-  local s,e = lexer.txt:find('^%s+', lexer.index)
-  -- If found then update index, line, column
-  if s then
-    lexer.index = e + 1
-    update_linecount(lexer, s, e)
+local skip_whitespace_and_comments = function (lexer)
+  local start_index = lexer.index
+  while true do
+    -- EOF
+    if lexer.index > lexer.len then return end
+    -- Find whitespace
+    local s,e = lexer.txt:find('^%s+', lexer.index)
+    if s then
+      lexer.index = e + 1
+      update_linecount(lexer, s, e)
+    end
+    -- EOF
+    if lexer.index > lexer.len then return end
+    -- Find comments
+    local s,e = lexer.txt:find('^;.*\n', lexer.index)
+    if s then
+      lexer.index = e + 1
+      update_linecount(lexer, s, e)
+    end
+    -- EOF
+    if lexer.index > lexer.len then return end
+    -- Find comments
+    local s,e = lexer.txt:find('^;[^\n]*$', lexer.index)
+    if s then
+      lexer.index = e + 1
+      update_linecount(lexer, s, e)
+    end
+    -- EOF
+    if lexer.index > lexer.len then return end
+    -- Any advances?
+    if lexer.index == start_index then return end
+    start_index = lexer.index
   end
 end
 
@@ -52,7 +77,7 @@ L.next_token = function (lexer)
   if lexer.index > lexer.len then return nil end
 
   -- skip whitespace
-  skip_whitespace(lexer)
+  skip_whitespace_and_comments(lexer)
 
   -- if EOF return nil
   if lexer.index > lexer.len then return nil end
@@ -64,15 +89,15 @@ L.next_token = function (lexer)
   elseif c == "'" then return create_token(lexer, lexer.index, lexer.index)
   else
     -- Numbers (1)
-    local s, e = lexer.txt:find('^%d+%.%d*', lexer.index)
+    local s, e = lexer.txt:find('^[+-]?%d+%.%d*', lexer.index)
     if s then return create_token(lexer, s, e) end
     -- Numbers (2)
-    local s, e = lexer.txt:find('^%.%d+', lexer.index)
+    local s, e = lexer.txt:find('^[+-]?%.%d+', lexer.index)
     if s then return create_token(lexer, s, e) end
     -- Dot
     if c == '.' then return create_token(lexer, lexer.index, lexer.index) end
-    -- Non whitespace
-    local s, e = lexer.txt:find('^[^%s().]+', lexer.index)
+    -- Non whitespace nor comment
+    local s, e = lexer.txt:find('^[^%s().;]+', lexer.index)
     if s then return create_token(lexer, s, e) end
   end
 end
