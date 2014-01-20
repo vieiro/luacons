@@ -4,27 +4,36 @@
 
 See [cells.lua](cells.lua)
 
-   local cells = require 'cells'
+```lua
+local cells = require 'cells'
 
-   local cons = cells.cons
-   local car  = cells.car
-   local list = cells.list
-   -- etc.
+local cons = cells.cons
+local car  = cells.car
+local cadr = cells.cadr
+local cddr = cells.cddr
+local list = cells.list
+-- etc.
 
-   local c = list('A', 'B', 'C')
-   print(c) -- (A B C)
-   print(car(c)) -- A
+local c = list('A', 'B', 'C')
+print(c)       -- (A B C)
+print(car(c))  -- A
+print(cadr(c)) -- B
+print(cddr(c)) -- (C)
+```
 
 
 ### Reading S-Expresions
 
-   local reader = require 'reader'
+```lua
+local reader = require 'reader'
 
-   local r = reader.new('(A    (B    "string"    -123.456    (C . D))) (x y)')
-   local c, errors = r:read()
+local r = reader.new('(A    (B    "string"    -123.456    (C . D))) (x y)')
+local c, errors = r:read()
 
-   print(c[1]) -- (A (B "string" -123.456 (C . D))
-   print(c[2]) -- (x y)
+print(#c)   -- 2
+print(c[1]) -- (A (B "string" -123.456 (C . D))
+print(c[2]) -- (x y)
+```
 
 See [reader.lua](reader.lua)
 
@@ -33,6 +42,8 @@ See [reader.lua](reader.lua)
 See [test.lua](test.lua) for examples on how to use it (unit tests).
 
 ### Features
+
+* 2014-01-21: reads quoted strings, parses some Scheme source code
 
 * 2014-01-20: cons, cdr, car, set-car, set-cdr et al [cells.lua](cells.lua).
 * 2014-01-20: prints cells with cycles
