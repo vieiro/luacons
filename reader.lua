@@ -19,9 +19,10 @@ P.read_next_token = function (parser)
 end
 
 P.read = function (parser)
+  local previous_token = parser.token
   local token = P.read_next_token(parser)
   if token == nil then
-    P.add_error(parser, nil, 'Unexpected end of file')
+    P.add_error(parser, previous_token, 'Unexpected end of file')
     return nil
   elseif token.txt == '.' then
     P.add_error(parser, parser.token, 'Unexpected dot')

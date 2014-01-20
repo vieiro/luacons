@@ -5,6 +5,8 @@
 -- MIT License
 --
 
+local memory = collectgarbage 'count'
+
 ----------------------------------------------------------------------
 -- CELLS unit tests
 ----------------------------------------------------------------------
@@ -93,6 +95,8 @@ count_tokens('(a ;A comment\n b)', 4)
 count_tokens('(123.456 . .45)', 5)
 count_tokens(' ( a ( b ) . .45 0.45 )', 9)
 count_tokens(' ( a ( b ) . -.45 -0.45 )', 9)
+count_tokens('  "Foo\\"Foo\\"Foo" "Bar" ', 2)
+count_tokens('"Foo" "Bar"', 2)
 
 print('lexer','All tests passed.')
 
@@ -116,6 +120,7 @@ local test_reader = function (input_text, expected_text)
 
 end
 
+test_reader("'42", "(quote 42)")
 test_reader('(A   B )', '(A B)')
 test_reader("42 '43", '42:(quote 43)')
 test_reader('(A B) (C D)', '(A B):(C D)')
@@ -124,7 +129,7 @@ test_reader("  ( A . B )  ' ( C  D ) ", '(A . B):(quote (C D))')
 -- s-expressions with errors
 local r = reader.new('(A')
 local c, e = r:read()
-assert(c == nil and e == 'Unexpected end of file')
+assert(c == nil and e and e == '1:2:Unexpected end of file', "Errors are: " .. e)
 
 local r = reader.new('(A . B C)')
 local c,e = r:read()
@@ -132,3 +137,4 @@ assert(c == nil and e == '1:8:Malformed dotted pair')
 
 print('reader','All tests passed.')
 
+print( 1024 * ( collectgarbage('count') - memory) , 'bytes used')

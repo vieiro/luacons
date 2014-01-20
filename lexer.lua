@@ -35,15 +35,7 @@ local skip_whitespace_and_comments = function (lexer)
     -- EOF
     if lexer.index > lexer.len then return end
     -- Find comments
-    local s,e = lexer.txt:find('^;.*\n', lexer.index)
-    if s then
-      lexer.index = e + 1
-      update_linecount(lexer, s, e)
-    end
-    -- EOF
-    if lexer.index > lexer.len then return end
-    -- Find comments
-    local s,e = lexer.txt:find('^;[^\n]*$', lexer.index)
+    local s,e = lexer.txt:find('^;[^\n]+[\n]', lexer.index)
     if s then
       lexer.index = e + 1
       update_linecount(lexer, s, e)
@@ -72,6 +64,23 @@ local create_token = function (lexer, s, e)
   return setmetatable(token, TOKEN_METATABLE)
 end
 
+local consume_quoted_string = function(lexer)
+  local start = lexer.index
+  while true do
+    lexer.index = lexer.index + 1
+    local s,e = lexer.txt:find('^[^"]+"', lexer.index)
+    if s then 
+      if lexer.txt:sub(e-1,e-1) ~= '\\' then
+        return create_token(lexer, start, e)
+      else
+        lexer.index = e+1
+      end
+    else
+      error('Unfinished string')
+    end
+  end
+end
+
 L.next_token = function (lexer)
   -- if EOF return nil
   if lexer.index > lexer.len then return nil end
@@ -87,7 +96,9 @@ L.next_token = function (lexer)
   if     c == '(' then return create_token(lexer, lexer.index, lexer.index)
   elseif c == ')' then return create_token(lexer, lexer.index, lexer.index)
   elseif c == "'" then return create_token(lexer, lexer.index, lexer.index)
+  elseif c == '"' then return consume_quoted_string(lexer) 
   else
+    -- Strings
     -- Numbers (1)
     local s, e = lexer.txt:find('^[+-]?%d+%.%d*', lexer.index)
     if s then return create_token(lexer, s, e) end
