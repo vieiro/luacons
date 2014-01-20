@@ -73,22 +73,33 @@ print('cells: All tests passed')
 
 local reader = require 'reader'
 
--- Read some s-expressions
-assert(cells.tostring(reader.read('(A B)')) == '(A B)')
-assert(cells.tostring(reader.read('(A . B)')) == '(A . B)')
-assert(cells.tostring(reader.read('(123.456 . B)')) == '(123.456 . B)')
-assert(cells.tostring(reader.read('(A (B . C))')) == '(A (B . C))')
+local test_reader = function (input_text, expected_text)
 
--- s-expressions with quotes
-assert(cells.tostring(reader.read("(A ' (B  C ) )")) == '(A (quote (B C)))')
-assert(cells.tostring(reader.read(" ' 42")) == "42")
-assert(cells.tostring(reader.read(" ' ()")) == "()")
+  local r = reader.new(input_text)
+  local cells, errors = r:read()
+  local s = ''
+  for i,cell in ipairs(cells) do
+    s = s .. tostring(cell) .. (i == #cells and '' or ':')
+  end
+  assert(errors == nil)
+  assert(#cells > 0)
+  assert(s == expected_text)
+
+end
+
+test_reader('(A   B )', '(A B)')
+test_reader('42 43', '42:43')
+test_reader('(A B) (C D)', '(A B):(C D)')
+test_reader("  ( A . B )  ' ( C  D ) ", '(A . B):(quote (C D))')
 
 -- s-expressions with errors
-local c, e = reader.read('( A')
-assert(e == 'Unexpected end of file')
-local c, e = reader.read('(A . B C)')
-assert(e == '1:8:Malformed dotted pair')
+local r = reader.new('(A')
+local c, e = r:read()
+assert(c == nil and e == 'Unexpected end of file')
+
+local r = reader.new('(A . B C)')
+local c,e = r:read()
+assert(c == nil and e == '1:8:Malformed dotted pair')
 
 print('reader: All tests passed')
 

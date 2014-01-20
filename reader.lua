@@ -117,15 +117,35 @@ end
 
 local R = {}
 
-R.read = function (text)
-  assert(type(text) == 'string')
-  local parser = P.new(text)
-  local cell = P.read(parser)
-  if cell then
-    return cell
-  else
-    return nil, table.concat(parser.errors, '\n')
+R.read = function(reader)
+  assert(reader)
+  assert(reader.parser)
+
+  local cells  = {}
+  local errors = {}
+
+  while true do
+    local cell = P.read(reader.parser)
+    if #reader.parser.errors > 0 then
+      table.insert(errors, table.concat(reader.parser.errors,'\n'))
+      break
+    else
+      table.insert(cells, cell)
+    end
+    if reader.parser.next_token == nil then break end
   end
+  if #errors > 0 then
+    return nil, table.concat(errors, '\n')
+  else
+    return cells, nil
+  end
+end
+
+R.new = function (text)
+  return {
+    parser = P.new(text),
+    read   = R.read,
+  }
 end
 
 return R
