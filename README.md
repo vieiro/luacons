@@ -1,8 +1,36 @@
-## cons-cells in Lua using tables
+## S-Expressions in Lua
 
-This module implements cons-cells using Lua tables.
+### Manipulating S-Expressions
 
-See [test.lua](test.lua) for examples on how to use it.
+See [cells.lua](cells.lua)
+
+   local cells = require 'cells'
+
+   local cons = cells.cons
+   local car  = cells.car
+   local list = cells.list
+   -- etc.
+
+   local c = list('A', 'B', 'C')
+   print(c) -- (A B C)
+   print(car(c)) -- A
+
+
+### Reading S-Expresions
+
+   local reader = require 'reader'
+
+   local r = reader.new('(A    (B    "string"    -123.456    (C . D))) (x y)')
+   local c, errors = r:read()
+
+   print(c[1]) -- (A (B "string" -123.456 (C . D))
+   print(c[2]) -- (x y)
+
+See [reader.lua](reader.lua)
+
+### More examples
+
+See [test.lua](test.lua) for examples on how to use it (unit tests).
 
 ### Features
 
