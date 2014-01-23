@@ -26,6 +26,11 @@ M.is_atom = function (c)
   return not M.is_nil(c) and not M.is_cons(c)
 end
 
+-- Returns true if c is a list (a cons or nil)
+M.is_list = function (c)
+  return M.is_nil(c) or (M.is_cons(c) and M.is_list(c[2]))
+end
+
 -- Checks for cycles and assigns numbers to them for later printing
 local function compute_labels_for_cycles (c, visited, labels, next_label)
   if M.is_cons(c) then
@@ -181,6 +186,73 @@ M.append = function (a, b)
   end
 end
 
+-- map
+M.map = function(n, proc, ...)
+  assert(proc and type(proc) == 'function')
+  assert(n and type(n) == 'number')
+  local lists = {...}
+  assert(lists and #lists >= 1)
+  for i=1,n do
+    if M.is_nil(lists[i]) then return 1, nil end
+  end
+  for i=1,n do
+    if not M.is_list(lists[i]) then 
+      return nil, 'Map requires arguments being lists, but element ' .. i .. '[' .. lists[i] .. '] is not a list'
+    end
+  end
+  local function map_rec (proc, n, lists)
+    assert(proc and type(proc) == 'function')
+    assert(n and type(n) == 'number')
+    local cars = {}
+    for i=1,n do
+      local car = lists[i][1] -- M.car(lists[i])
+      if M.is_nil(car) then return 1, nil end
+      table.insert(cars, car)
+    end
+    local _, cars = proc(n, unpack(cars))
+    local cdrs = {}
+    for i=1,n do
+      local cdr = lists[i][2] -- M.cdr(lists[i])
+      if M.is_nil(cdr) then return 1, M.cons(cars, nil) end
+      table.insert(cdrs, cdr)
+    end
+    local _, cdrs = map_rec(proc, n, cdrs)
+    return 1, M.cons(cars, cdrs)
+  end
+  return map_rec(proc, n, lists)
+end
+
+-- apply
+M.apply = function(n, proc, ...)
+  assert(n and type(n) == 'number' and n > 0, "Expected number of varargs for apply, but got " .. tostring(n))
+  assert(proc and type(proc) == 'function', "Expected a procedure for apply, but got " .. tostring(proc))
+  local elements = {}
+  local args = {...}
+  local m = 0
+  for i=1,n do
+    local arg = args[i]
+    if i == n then
+      if not M.is_list(arg) then return nil, 'Apply requires a list as a last argument, but got ' .. tostring(arg) end
+      local arg_len  = M.length(arg)
+      for j=1,arg_len do
+        local e = M.nth(arg, j)
+        table.insert(elements, e)
+        m = m + 1
+      end
+    else
+      table.insert(elements, arg)
+      m = m + 1
+    end
+  end
+  return proc(m, unpack(elements))
+end
+
+-- (define (zip list1 . more-lists) (apply map list list1 more-lists))
+M.zip = function (n, ...)
+  local args = {...}
+  return M.map(n, M.list, unpack(args))
+end
+
 -- fallback __index table
 local cell_methods = {
       is_cons   = M.is_cons,
@@ -204,6 +276,10 @@ local cell_methods = {
       set_car   = M.set_car,
       set_cdr   = M.set_cdr,
 
+      apply     = M.apply,
+      map       = M.map,
+      zip       = M.zip,
+
       tostring  = M.tostring,
 }
 
@@ -214,7 +290,6 @@ local cell_metatable = {
 
 -- Creates a new cell with (car, cdr)
 M.cons = function (car, cdr)
-  if car == nil and cdr == nil then return nil end
   local cons_cell = {
     [1] = car,
     [2] = cdr,
@@ -223,14 +298,17 @@ M.cons = function (car, cdr)
   return setmetatable(cons_cell, cell_metatable);
 end
 
-local function create_list (t,i)
-  return t[i] and M.cons(t[i], create_list(t, i+1)) or nil
+-- Creates a list with a variable number of arguments
+-- Returns 1, list
+M.list = function (n, ...)
+  assert(type(n)=='number')
+  local args = {...}
+  local cell = nil
+  for i=n,1,-1 do
+    cell = M.cons(args[i], cell)
+  end
+  return 1, cell
 end
 
--- Creates a list with a variable number of arguments
-M.list = function (...)
-  local args = {...}
-  return args[1] and create_list(args, 1) or nil
-end
 
 return M
