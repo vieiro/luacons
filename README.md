@@ -14,13 +14,12 @@ local cddr = cells.cddr
 local list = cells.list
 -- etc.
 
-local c = list('A', 'B', 'C')
+local _, c = list(3, 'A', 'B', 'C')
 print(c)       -- (A B C)
 print(car(c))  -- A
 print(cadr(c)) -- B
 print(cddr(c)) -- (C)
 ```
-
 
 ### Reading S-Expresions
 
@@ -39,9 +38,12 @@ See [reader.lua](reader.lua)
 
 ### More examples
 
-See [test.lua](test.lua) for examples on how to use it (unit tests).
+See [test.lua](test.lua) for examples on how to do reading and for examples of use of 'map', 'zip' and 'apply'.
 
 ### Features
+
+* 2014-01-23: list, map, apply, zip. Since Lua does not handle [varargs properly](http://lua-users.org/wiki/VarargTheSecondClassCitizen)
+adding an integer as companion to all varargs '{...}' and as result to all 'return' clauses.
 
 * 2014-01-21: reads quoted strings, parses some Scheme source code
 
